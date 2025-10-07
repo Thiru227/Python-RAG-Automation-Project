@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RAG Ask</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 40px; max-width: 800px; }
+    h1 { font-size: 20px; }
+    textarea { width: 100%; height: 110px; padding: 10px; font-size: 14px; }
+    button { padding: 10px 16px; font-size: 14px; cursor: pointer; }
+    .row { display: flex; gap: 8px; align-items: center; margin: 12px 0; }
+    .answer { white-space: pre-wrap; background: #f7f7f8; border: 1px solid #e4e4e7; padding: 12px; border-radius: 8px; min-height: 40px; }
+    .muted { color: #6b7280; font-size: 12px; }
+  </style>
+  <script>
+    async function askQuestion() {
+      const questionInput = document.getElementById('question');
+      const answerEl = document.getElementById('answer');
+      const askBtn = document.getElementById('askBtn');
+      const q = questionInput.value.trim();
+      if (!q) { answerEl.textContent = 'Please enter a question.'; return; }
+      askBtn.disabled = true; askBtn.textContent = 'Asking...';
+      answerEl.textContent = '';
+      try {
+        const res = await fetch('/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: q })
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || 'Request failed');
+        }
+        const data = await res.json();
+        answerEl.textContent = data.answer || JSON.stringify(data);
+      } catch (err) {
+        answerEl.textContent = 'Error: ' + err.message;
+      } finally {
+        askBtn.disabled = false; askBtn.textContent = 'Ask';
+      }
+    }
+  </script>
+</head>
+<body>
+  <h1>Ask your data</h1>
+  <p class="muted">Make sure the Flask app is running and your data is ingested.</p>
+
+  <textarea id="question" placeholder="e.g., What event does the Aurora Museum host?"></textarea>
+  <div class="row">
+    <button id="askBtn" onclick="askQuestion()">Ask</button>
+    <button onclick="document.getElementById('question').value=''; document.getElementById('answer').textContent='';">Clear</button>
+  </div>
+
+  <div class="answer" id="answer"></div>
+
+  <p class="muted">This posts to <code>/ask</code> with JSON: { question: "..." } and shows the response.</p>
+</body>
+</html>
+
+
+
