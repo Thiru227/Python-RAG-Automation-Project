@@ -126,25 +126,43 @@ def ask():
         return jsonify({"error": "LLM request failed. Please retry in a moment.", "detail": str(e)}), 502
 
 @app.route("/webhook", methods=["POST"])
-def webhook():
-    req = request.get_json(silent=True, force=True)
-    q = None
-    if req and "queryResult" in req:
-        q = req["queryResult"].get("queryText")
-    if not q:
-        return jsonify({"fulfillmentText": "Sorry, I couldn't read your question."})
-    context = retrieve_context(q, k=3)
-    system = (
-        "You are an educational assistant. Use ONLY the context between <CONTEXT> tags to answer. "
-        "If not in context, say 'I don't know from the provided material.'"
-    )
-    user = f"<CONTEXT>\n{context}\n</CONTEXT>\n\nQuestion: {q}\nAnswer briefly:"
+def dialogflow_webhook():
+    """Dialogflow webhook endpoint."""
     try:
-        ans = call_openrouter_system(system, user)
-        return jsonify({"fulfillmentText": ans})
-    except Exception:
-        return jsonify({"fulfillmentText": "The model is busy. Please try again shortly."})
+        req = request.get_json(force=True)
+
+        # Extract query and session
+        query_text = (req or {}).get("queryResult", {}).get("queryText", "")
+        session_id = (req or {}).get("session", "").split("/")[-1]
+
+        print(f"Received query from Dialogflow: {query_text} (session={session_id})")
+
+        if not query_text:
+            return jsonify({"fulfillmentText": "Sorry, I couldn't read your question."})
+
+        # RAG pipeline
+        context = retrieve_context(query_text, k=3)
+        system = (
+            "You are an educational assistant. Use ONLY the context between <CONTEXT> tags to answer. "
+            "If not in context, say 'I don't know from the provided material.'"
+        )
+        user = f"<CONTEXT>\n{context}\n</CONTEXT>\n\nQuestion: {query_text}\nAnswer briefly:"
+
+        try:
+            response_text = call_openrouter_system(system, user)
+        except Exception:
+            response_text = "The model is busy. Please try again shortly."
+
+        dialogflow_response = {
+            "fulfillmentText": response_text,
+            "fulfillmentMessages": [{"text": {"text": [response_text]}}],
+            "source": "rag-agent",
+        }
+        return jsonify(dialogflow_response)
+    except Exception as e:
+        print(f"Error in webhook: {str(e)}")
+        return jsonify({"fulfillmentText": f"Sorry, I encountered an error: {str(e)}"}), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 7860)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 7860)), debug=False)
 
