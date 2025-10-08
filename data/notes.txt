@@ -1,8 +1,32 @@
-"The Aurora Museum was established in 1995 and is located in the heart of the city.",
-    "The museum features exhibits from ancient civilizations, including Egypt, Greece, and India.",
-    "A special section is dedicated to digital art and interactive installations.",
-    "The museum is open from 9 AM to 6 PM every day except Mondays.",
-    "Guided tours are available at 10 AM, 1 PM, and 4 PM daily.",
-    "Visitors can enjoy a café on the top floor with a panoramic city view.",
-    "The museum gift shop sells souvenirs, art prints, and handcrafted jewelry.",
-    "Every summer, the Aurora Museum hosts the 'Night at the Museum' event with live performances."
+Rathinam Technical Campus 
+-----------------------------------------------
+
+📌 Leadership & Admin
+- Principal: Dr. B. Nagaraj 
+- Vice-Principal (Academics): Dr. K. Geetha 
+- Director of IQAC & Head Office Affairs: Dr. S. Siva Subramanian 
+- Controller of Examinations: Dr. P. Krishnakumar 
+🏢 Campus Infrastructure
+- Campus area: approx 4.16 acres with about 10,358 sq.m plinth area for buildings. 
+- Classrooms: Spacious, well-ventilated, with smart-classroom setup and high-quality computing facilities in each department. 
+- Labs: Each department has its own labs; well-equipped for major/minor projects and research. 
+- Library: Central library + digital resources; e-books and e-journals; ICT support. 
+- Internet/WiFi: 24-hour internet, ~50 Mbps bandwidth; ~55 WiFi access points covering whole campus including hostels.
+- Other Facilities: Auditorium, indoor & outdoor stadiums, smart classrooms, digital classrooms. 
+
+🎯 Placements (2025)
+- Highest package: ~ **INR 26 LPA** 
+- Average package: ~ **INR 4.6 LPA**  
+- Recruiters: over **1,200+ recruiters** participated in placement drives.   
+- Placement-related training: resume building, mock interviews, communication/aptitude training are provided.
+
+🏫 Facilities & Student Life
+- Separate hostels for boys and girls, with WiFi and security. 
+- Sports: Outdoor grounds (football, cricket etc.), indoor sports (badminton, table tennis etc.) 
+- Extracurriculars: Technical clubs (Robotics, Coding), cultural clubs, environment/NSS/social clubs. 
+💸 Fees & Admissions
+- MBA fee: approx **₹8.5 Lakhs** for 2 years.  
+- Full-course tuition fees for engineering/UG: approx **₹16 Lakhs** in total (depending on program) 
+
+---
+

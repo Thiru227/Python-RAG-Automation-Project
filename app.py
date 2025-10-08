@@ -5,7 +5,7 @@ import shutil
 import requests
 from langchain_community.document_loaders import TextLoader, PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 
@@ -58,7 +58,7 @@ embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 ensure_vector_store(embeddings)
 db = Chroma(persist_directory="chroma_db", embedding_function=embeddings)
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', template_folder='templates')
 
 def retrieve_context(question, k=3):
     docs = db.similarity_search(question, k=k)
@@ -102,6 +102,10 @@ def call_openrouter_system(system_prompt, user_prompt):
         return jr["choices"][0]["message"]["content"].strip()
     raise RuntimeError(f"OpenRouter request failed after retries: {last_error_text}")
 
+@app.route("/")
+def index():
+    return render_template("index.html")
+
 @app.route("/ask", methods=["POST"])
 def ask():
     data = request.json
@@ -142,6 +146,5 @@ def webhook():
         return jsonify({"fulfillmentText": "The model is busy. Please try again shortly."})
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", "5000"))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 7860)))
 
