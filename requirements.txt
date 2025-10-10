@@ -4,8 +4,7 @@ langchain-community>=0.2.0
 langchain-huggingface>=0.0.3
 langchain-chroma>=0.1.2
 chromadb
-sentence-transformers
+sentence-transformers==2.2.2
 requests
 python-dotenv
 pypdf
-
