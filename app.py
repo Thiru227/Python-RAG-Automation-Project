@@ -1,4 +1,9 @@
 import os
+
+os.environ["HF_HOME"] = "/tmp/huggingface"
+os.environ["TRANSFORMERS_CACHE"] = "/tmp/huggingface"
+os.environ["SENTENCE_TRANSFORMERS_HOME"] = "/tmp/huggingface"
+
 import json
 import time
 import shutil
@@ -54,7 +59,7 @@ def ensure_vector_store(embeddings):
         print(f"Ingested {len(chunks)} chunks into {persist_dir} from data/.")
 
 # load embeddings, ensure vector store, then open persistent DB
-embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 ensure_vector_store(embeddings)
 db = Chroma(persist_directory="chroma_db", embedding_function=embeddings)
 
