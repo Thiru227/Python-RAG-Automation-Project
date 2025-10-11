@@ -8,6 +8,8 @@ os.environ["HF_DATASETS_CACHE"] = cache_dir
 os.environ["HF_HUB_CACHE"] = cache_dir
 os.environ["SENTENCE_TRANSFORMERS_HOME"] = cache_dir
 
+# IMPORTANT: Disable ChromaDB telemetry and set to ephemeral mode
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
 
 import json
 import time
@@ -17,6 +19,7 @@ from langchain_community.document_loaders import TextLoader, PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from flask import Flask, request, jsonify, render_template
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
+import chromadb
 from langchain_chroma import Chroma
 
 # CONFIG
@@ -25,16 +28,8 @@ OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL = "deepseek/deepseek-r1:free"
 
 def ensure_vector_store(embeddings):
-    """Create or refresh the Chroma DB if missing or forced via FORCE_INGEST=1.
-
-    Uses TextLoader on data/notes.txt by default. To switch to PDF, set
-    INGEST_PDF_PATH to a file path and it will use PyPDFLoader instead.
-    """
-    persist_dir = "chroma_db"
-    # Always rebuild from scratch on startup
-    shutil.rmtree(persist_dir, ignore_errors=True)
-    os.makedirs(persist_dir, exist_ok=True)
-
+    """Create the Chroma DB in ephemeral (in-memory) mode for HF Spaces."""
+    
     # Collect documents from env override or from data/ folder
     collected_docs = []
     pdf_path = os.getenv("INGEST_PDF_PATH")
@@ -52,25 +47,36 @@ def ensure_vector_store(embeddings):
                         elif fname.lower().endswith(".txt"):
                             collected_docs.extend(TextLoader(fpath, encoding="utf8").load())
                     except Exception as e:
-                        # Skip unreadable files but continue others
                         print(f"Warning: failed to load {fpath}: {e}")
 
     if not collected_docs:
-        print("No documents found to ingest in data/. Skipping ingestion.")
-    else:
-        splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100)
-        chunks = splitter.split_documents(collected_docs)
-        Chroma.from_documents(chunks, embeddings, persist_directory=persist_dir)
-        print(f"Ingested {len(chunks)} chunks into {persist_dir} from data/.")
+        print("No documents found to ingest in data/. Creating empty vector store.")
+        return None
+    
+    splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100)
+    chunks = splitter.split_documents(collected_docs)
+    
+    # Use ephemeral client (in-memory) instead of persistent
+    client = chromadb.EphemeralClient()
+    vectorstore = Chroma.from_documents(
+        documents=chunks,
+        embedding=embeddings,
+        client=client,
+        collection_name="rag_collection"
+    )
+    
+    print(f"Ingested {len(chunks)} chunks into ephemeral vector store.")
+    return vectorstore
 
-# load embeddings, ensure vector store, then open persistent DB
+# Load embeddings and create vector store
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-ensure_vector_store(embeddings)
-db = Chroma(persist_directory="chroma_db", embedding_function=embeddings)
+db = ensure_vector_store(embeddings)
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
 def retrieve_context(question, k=3):
+    if db is None:
+        return "No documents available."
     docs = db.similarity_search(question, k=k)
     return "\n\n".join(d.page_content for d in docs)
 
@@ -157,4 +163,3 @@ def webhook():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 7860)))
-
