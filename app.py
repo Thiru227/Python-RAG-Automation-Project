@@ -1,12 +1,11 @@
 import os
-
-# Force all Hugging Face and Transformers caches to use /tmp
 cache_dir = "/tmp/huggingface"
 os.makedirs(cache_dir, exist_ok=True)
 
 os.environ["HF_HOME"] = cache_dir
-os.environ["HF_DATASETS_CACHE"] = cache_dir
 os.environ["TRANSFORMERS_CACHE"] = cache_dir
+os.environ["HF_DATASETS_CACHE"] = cache_dir
+os.environ["HF_HUB_CACHE"] = cache_dir
 os.environ["SENTENCE_TRANSFORMERS_HOME"] = cache_dir
 
 
